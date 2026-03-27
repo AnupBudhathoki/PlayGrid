@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}PlayGrid — Tic Tac Toe{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/ttt.css' %}" rel="stylesheet">
+
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+  <h1>Tic Tac Toe</h1>
+  <p>Welcome to the Tic Tac Toe game!</p>
+</div>
+
+<div class="game_layout">
+  <!-- MAIN GAME AREA -->
+  <div class="game-area">
+    {% if player_role == 'X' %}
+    <div class="role-badge role-x"><span>⚡</span>
+      You are player X</div>
+    {% elif player_role == 'O' %}
+    <div class="role-badge role-o"><span>⚡</span>
+      You are player O</div>
+    {% else %}
+    <div class="role-badge role-spectator"><span>👀</span>
+      You are a spectator</div>
+    {% endif %}
+
+    <!-- Players Bar -->
+    <div class="players-bar" id="playersbar">
+      <div class="player-chip player-x" id="chipX">
+        <div class="player-symbol">X</div>
+        <div class="player-name-chip" id="nameX">{{room.player_x_name}}</div>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="player-chip player-o" id="chipO">
+        <div class="player-symbol">O</div>
+        <div class="player-name-chip" id="nameO">{{room.player_o_name|default:"Waiting..."}}</div>
+      </div>
+    </div>
+    <!-- Status -->
+    <div class="game-status" id="gameStatus">
+      <span class="pulse-dot"></span>
+      <span id="statusText">
+        {% if room.status == 'waiting' %}Waiting for opponent<span class="waiting-dots"></span>
+        {% elif room.status == 'active' %}Game in progress
+        {% else %}Game over{% endif %}
+      </span>
+    </div>
+    <!-- Board -->
+    <div class="board-wrap">
+      <div class="ttt-board" id="board">
+        {% for i in "012345678" %}
+        <div class="ttt-cell" data-index="{{ forloop.counter0 }}" onclick="makeMove({{ forloop.counter0 }})"></div>
+        {% endfor %}
+      </div>
+
+      <!-- Win overlay -->
+      <div class="win-overlay" id="winOverlay">
+        <div class="win-text" id="winText">—</div>
+        <div class="win-sub" id="winSub">—</div>
+        {% if player_role %}
+        <button class="btn-gv-primary" onclick="resetGame()">
+          <i class="fas fa-redo me-2"></i>Play Again
+        </button>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Reset button (during game) -->
+    {% if player_role %}
+    <button class="btn-gv-accent" id="resetBtn" onclick="resetGame()" style="display:none">
+      <i class="fas fa-redo me-2"></i>New Game
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <!-- Room Info -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">⬡ Room Code</div>
+      <div class="room-code-box" id="roomCodeBox" onclick="copyRoomCode()" title="Click to copy">
+        {{ room_id }}
+      </div>
+      <div class="copy-hint">Click to copy · Share with a friend</div>
+    </div>
+    <!-- Chat -->
+    <div class="chat-section">
+      <div class="chat-header">
+        <div class="sidebar-title" style="margin-bottom:0">💬 Chat</div>
+      </div>
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg system">Welcome to the game room!</div>
+        <div class="chat-msg system">Share the room code to invite a friend.</div>
+      </div>
+      <div class="chat-input-wrap">
+        <input type="text" id="chatInput" placeholder="Say something..." maxlength="200"
+          onkeypress="if(event.key==='Enter') sendChat()">
+        <button class="chat-send-btn" onclick="sendChat()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+  const ROOM_ID = "{{ room_id }}";
+  const PLAYER_ROLE = "{{ player_role }}";
+  const PLAYER_NAME = "{{ request.session.player_name|default:'Player' }}";
+
+  let board = ["", "", "", "", "", "", "", "", ""];
+  let currentTurn = "X";
+  let gameStatus = "{{ room.status }}";
+  let socket;
+
+  const WIN_COMBOS = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
+
+  // WebSocket
+  function connectWS() {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    socket = new WebSocket(`${protocol}//${window.location.host}/ws/ttt/${ROOM_ID}/`);
+
+    socket.onopen = () => addChat('system', 'Connected to game server');
+
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'room_state' || data.type === 'game_update') handleGameUpdate(data);
+      else if (data.type === 'chat_message') addChat(data.sender, data.message);
+    };
+
+    socket.onclose = () => {
+      addChat('system', 'Connection lost. Reconnecting...');
+      setTimeout(connectWS, 3000);
+    };
+
+    socket.onerror = () => addChat('system', 'Connection error');
+  }
+
+  function handleGameUpdate(data) {
+    board = data.board;
+    currentTurn = data.current_turn;
+    gameStatus = data.status;
+
+    renderBoard(data.last_move);
+    updatePlayerChips();
+    updateStatus(data);
+
+    if (data.status === 'finished') showWinOverlay(data.winner);
+    else {
+      document.getElementById('winOverlay').classList.remove('show');
+      const resetBtn = document.getElementById('resetBtn');
+      if (resetBtn) resetBtn.style.display = 'none';
+    }
+
+    if (data.player_x_name) document.getElementById('nameX').textContent = data.player_x_name;
+    if (data.player_o_name) document.getElementById('nameO').textContent = data.player_o_name || 'Waiting...';
+  }
+
+  function renderBoard(lastMove) {
+    const cells = document.querySelectorAll('.ttt-cell');
+    cells.forEach((cell, i) => {
+      cell.className = 'ttt-cell';
+      cell.textContent = '';
+      if (board[i] === 'X') {
+        cell.classList.add('x-cell', 'taken');
+        cell.textContent = 'X';
+      } else if (board[i] === 'O') {
+        cell.classList.add('o-cell', 'taken');
+        cell.textContent = 'O';
+      }
+      if (i === lastMove) cell.classList.add('pop-in');
+    });
+
+    // Highlight win
+    if (gameStatus === 'finished') {
+      const winner = board.find(v => v);
+      for (const combo of WIN_COMBOS) {
+        if (combo.every(i => board[i] === board[combo[0]] && board[combo[0]] !== '')) {
+          combo.forEach(i => cells[i].classList.add('win-cell'));
+          break;
+        }
+      }
+    }
+  }
+
+  function updatePlayerChips() {
+    const chipX = document.getElementById('chipX');
+    const chipO = document.getElementById('chipO');
+    chipX.classList.toggle('active-turn', currentTurn === 'X' && gameStatus === 'active');
+    chipO.classList.toggle('active-turn', currentTurn === 'O' && gameStatus === 'active');
+  }
+
+  function updateStatus(data) {
+    const el = document.getElementById('statusText');
+    if (data.status === 'waiting') {
+      el.innerHTML = 'Waiting for opponent<span class="waiting-dots"></span>';
+    } else if (data.status === 'active') {
+      const isMyTurn = currentTurn === PLAYER_ROLE;
+      if (PLAYER_ROLE) {
+        el.textContent = isMyTurn ? 'Your turn!' : `${currentTurn === 'X' ? data.player_x_name || 'Player X' : data.player_o_name || 'Player O'}'s turn`;
+      } else {
+        el.textContent = `${currentTurn}'s turn`;
+      }
+    }
+  }
+
+  function showWinOverlay(winner) {
+    const overlay = document.getElementById('winOverlay');
+    const winText = document.getElementById('winText');
+    const winSub = document.getElementById('winSub');
+    const resetBtn = document.getElementById('resetBtn');
+
+    overlay.classList.add('show');
+    if (resetBtn) resetBtn.style.display = 'inline-flex';
+
+    if (winner === 'D') {
+      winText.textContent = "It's a Draw!";
+      winText.style.color = 'var(--accent-gold)';
+      winSub.textContent = 'Well played by both!';
+    } else if (winner === PLAYER_ROLE) {
+      winText.textContent = '🏆 You Win!';
+      winText.style.color = 'var(--accent-gold)';
+      winSub.textContent = 'Congratulations!';
+    } else if (PLAYER_ROLE && winner !== PLAYER_ROLE) {
+      winText.textContent = 'You Lose';
+      winText.style.color = 'var(--text-muted)';
+      winSub.textContent = `${winner} wins this round`;
+    } else {
+      winText.textContent = `Player ${winner} Wins!`;
+      winText.style.color = winner === 'X' ? 'var(--accent-cyan)' : 'var(--accent-magenta)';
+      winSub.textContent = 'Game over';
+    }
+  }
+
+  function makeMove(index) {
+    if (!PLAYER_ROLE || gameStatus !== 'active') return;
+    if (currentTurn !== PLAYER_ROLE) return;
+    if (board[index] !== '') return;
+
+    socket.send(JSON.stringify({ type: 'make_move', index: index, player: PLAYER_ROLE }));
+  }
+
+  function resetGame() {
+    if (!PLAYER_ROLE) return;
+    socket.send(JSON.stringify({ type: 'reset_game' }));
+  }
+
+  // Chat
+  function sendChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg || !socket) return;
+
+    const name = PLAYER_NAME || (PLAYER_ROLE ? `Player ${PLAYER_ROLE}` : 'Spectator');
+    socket.send(JSON.stringify({ type: 'chat_message', message: msg, sender: name }));
+    input.value = '';
+  }
+
+  function addChat(sender, message) {
+    const container = document.getElementById('chatMessages');
+    const div = document.createElement('div');
+
+    if (sender === 'system') {
+      div.className = 'chat-msg system';
+      div.textContent = message;
+    } else {
+      const nameClass = sender.includes('X') || sender === PLAYER_NAME && PLAYER_ROLE === 'X' ? 'player-x-msg' : 'player-o-msg';
+      div.className = `chat-msg ${nameClass}`;
+      div.innerHTML = `<span class="sender">${sender}</span>${message}`;
+    }
+
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function copyRoomCode() {
+    navigator.clipboard.writeText(ROOM_ID).then(() => {
+      const box = document.getElementById('roomCodeBox');
+      const orig = box.textContent;
+      box.textContent = '✓ Copied!';
+      box.style.color = 'var(--accent-cyan)';
+      setTimeout(() => {
+        box.textContent = orig;
+        box.style.color = '';
+      }, 1500);
+    });
+  }
+
+  connectWS();
+</script>
+
+
+{% endblock %}

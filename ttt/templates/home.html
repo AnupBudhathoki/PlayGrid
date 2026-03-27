@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PlayGrid — Multiplayer Game Hub{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/home.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block fullpage %}
+
+<!-- ═══════════ SPLASH SCREEN ═══════════ -->
+<div id="splash">
+  <div class="stars" id="stars"></div>
+
+  <div id="explode">
+    <div class="core"></div>
+    <div class="ring r1"></div>
+    <div class="ring r2"></div>
+    <div class="ring r3"></div>
+    <div class="ring r4"></div>
+  </div>
+
+  <div id="flash"></div>
+
+  <div id="bombWrap">
+    <svg width="210" height="230" viewBox="0 0 210 230" xmlns="http://www.w3.org/2000/svg">
+      <!-- fuse rope -->
+      <path d="M112 46 Q130 24 142 13 Q152 4 160 10 Q168 17 163 26"
+            fill="none" stroke="#8b7355" stroke-width="3.5" stroke-linecap="round"/>
+      <!-- fuse spark -->
+      <g class="fuse-spark">
+        <circle cx="163" cy="26" r="5.5" fill="#FFD700"/>
+        <circle cx="163" cy="26" r="3"   fill="#FFF"/>
+        <line x1="158" y1="22" x2="153" y2="16" stroke="#ff8800" stroke-width="2" stroke-linecap="round"/>
+        <line x1="168" y1="22" x2="173" y2="16" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+        <line x1="163" y1="21" x2="163" y2="13" stroke="#FF5500" stroke-width="2" stroke-linecap="round"/>
+        <line x1="159" y1="23" x2="153" y2="21" stroke="#ff9900" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="167" y1="23" x2="173" y2="21" stroke="#ffcc00" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+      <!-- shadow -->
+      <ellipse cx="107" cy="196" rx="68" ry="9" fill="rgba(0,0,0,0.28)"/>
+      <!-- body -->
+      <circle cx="105" cy="130" r="72" fill="url(#bombGrad)"/>
+      <circle cx="105" cy="130" r="72" fill="none" stroke="#111" stroke-width="2"/>
+      <!-- highlight -->
+      <ellipse cx="80" cy="98" rx="22" ry="15" fill="rgba(255,255,255,0.11)" transform="rotate(-22 80 98)"/>
+      <ellipse cx="74" cy="93" rx="9"  ry="6"  fill="rgba(255,255,255,0.17)" transform="rotate(-22 74 93)"/>
+      <!-- cap -->
+      <rect x="87" y="46" width="36" height="18" rx="5" fill="#555"/>
+      <rect x="87" y="46" width="36" height="9"  rx="4" fill="#777"/>
+      <!-- left eye -->
+      <g id="eyeL">
+        <circle cx="82"  cy="123" r="13"  fill="#111"/>
+        <circle cx="82"  cy="123" r="9.5" fill="white"/>
+        <circle cx="84"  cy="121" r="6"   fill="#1a1a1a"/>
+        <circle cx="86"  cy="119" r="2.5" fill="white"/>
+        <circle cx="82"  cy="126" r="1.2" fill="rgba(255,255,255,.4)"/>
+      </g>
+      <!-- right eye -->
+      <g id="eyeR">
+        <circle cx="128" cy="123" r="13"  fill="#111"/>
+        <circle cx="128" cy="123" r="9.5" fill="white"/>
+        <circle cx="130" cy="121" r="6"   fill="#1a1a1a"/>
+        <circle cx="132" cy="119" r="2.5" fill="white"/>
+        <circle cx="128" cy="126" r="1.2" fill="rgba(255,255,255,.4)"/>
+      </g>
+      <!-- mouth -->
+      <g id="mouth">
+        <path d="M 74 148 Q 105 182 136 148" fill="none" stroke="#cc3333" stroke-width="3" stroke-linecap="round"/>
+        <clipPath id="smileClip">
+          <path d="M 74 148 Q 105 178 136 148 L 136 162 Q 105 192 74 162 Z"/>
+        </clipPath>
+        <rect x="72" y="148" width="66" height="22" fill="white" clip-path="url(#smileClip)"/>
+        <line x1="88"  y1="149" x2="88"  y2="164" stroke="#ddd" stroke-width="1.5"/>
+        <line x1="105" y1="149" x2="105" y2="167" stroke="#ddd" stroke-width="1.5"/>
+        <line x1="122" y1="149" x2="122" y2="164" stroke="#ddd" stroke-width="1.5"/>
+        <path d="M 74 148 Q 105 182 136 148" fill="none" stroke="#aa2222" stroke-width="2.5" stroke-linecap="round"/>
+      </g>
+      <!-- cheeks -->
+      <g id="cheeks">
+        <ellipse cx="67"  cy="138" rx="11" ry="7.5" fill="rgba(255,100,100,.22)"/>
+        <ellipse cx="143" cy="138" rx="11" ry="7.5" fill="rgba(255,100,100,.22)"/>
+      </g>
+      <defs>
+        <radialGradient id="bombGrad" cx="38%" cy="32%" r="68%">
+          <stop offset="0%"   stop-color="#4d4d4d"/>
+          <stop offset="50%"  stop-color="#2b2b2b"/>
+          <stop offset="100%" stop-color="#0e0e0e"/>
+        </radialGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <p class="tagline">Loading PlayGrid&hellip;</p>
+</div>
+
+<!-- ═══════════ HOME PAGE ═══════════ -->
+<div id="home">
+
+  <nav class="gv-nav">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a class="brand" href="{% url 'home' %}">
+        <span class="brand-icon">💣</span>
+        <span class="brand-name">PLAY<span>GRID</span></span>
+      </a>
+      <div>
+        <a class="nav-link-gv" href="{% url 'home' %}">
+          <i class="fas fa-home me-1"></i> Lobby
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+
+    <!-- HERO -->
+    <div class="hero">
+      <div class="container">
+        <div class="hero-bomb">💣</div>
+        <div class="hero-title">PLAY<span>GRID</span></div>
+        <p class="hero-sub">Multiplayer games. Blow up your friends.</p>
+
+        <div class="name-panel">
+          <div class="panel-label">⚡ Your Player Name</div>
+          <form method="post" action="{% url 'set_name' %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="/">
+            <input class="gv-input" type="text" name="name"
+              placeholder="Enter your name…" value="{{ player_name }}" maxlength="30">
+            <button type="submit" class="btn-cyan">Set</button>
+          </form>
+        </div>
+
+        {% if error %}
+        <div class="gv-alert">⚠ {{ error }}</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- GAMES -->
+    <div class="games-section">
+      <div class="container">
+        <div class="sec-label">🎮 Available Games</div>
+        <div class="sec-title">Pick Your Game</div>
+
+        <div class="games-grid">
+
+          <!-- TIC TAC TOE -->
+          <div class="game-card">
+            <div class="card-preview">
+              <div class="ttt-mini">
+                <div class="ttt-mini-cell cx">X</div>
+                <div class="ttt-mini-cell co">O</div>
+                <div class="ttt-mini-cell cx">X</div>
+                <div class="ttt-mini-cell"  ></div>
+                <div class="ttt-mini-cell cx">X</div>
+                <div class="ttt-mini-cell co">O</div>
+                <div class="ttt-mini-cell co">O</div>
+                <div class="ttt-mini-cell"  ></div>
+                <div class="ttt-mini-cell cx">X</div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="card-title">Tic Tac Toe</div>
+              <p class="card-desc">Classic 2-player strategy. Outsmart your opponent in real-time. First to 3 wins!</p>
+              <form method="post" action="{% url 'create_room' %}">
+                {% csrf_token %}
+                <input type="hidden" name="game_type" value="tictactoe">
+                  <button type="submit" class="btn-cyan w-100 mb-2">
+                    <i class="fas fa-plus me-1"></i> Create Room
+                  </button>
+              </form>
+              <form method="post" style="background-color:aqua;" action="{% url 'tictactoe_offline' %}">
+                {% csrf_token %}
+                <input type="hidden" name="game_type" value="tictactoe">
+                  <button type="submit" class="btn-cyan w-100 bg">
+               Play Offline
+                  </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- COMING SOON -->
+          <div class="game-card card-locked">
+            <div class="card-preview"><div class="coming-icon">🔒</div></div>
+            <div class="card-body">
+              <div class="card-title" style="color:var(--muted)">Coming Soon</div>
+              <p class="card-desc">More games are exploding onto the scene. Stay tuned!</p>
+              <button class="btn-cyan w-100" disabled>Locked</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- JOIN PANEL -->
+        <div class="join-panel">
+          <div class="panel-label">🔗 Join a Friend's Room</div>
+          <form method="post" action="{% url 'join_room' %}" class="d-flex gap-2">
+            {% csrf_token %}
+            <input class="gv-input" type="text" name="room_code" placeholder="Paste room code here…" required>
+            <button type="submit" class="btn-magenta">
+              <i class="fas fa-sign-in-alt me-1"></i> Join
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPEN ROOMS -->
+    <div class="container pb-5">
+      <hr class="gv-divider">
+      <div class="sec-label mb-1">Live Now</div>
+      <div class="sec-title">Open Rooms</div>
+
+      {% if recent_rooms %}
+        {% for room in recent_rooms %}
+        <a href="{% url 'tictactoe_game' room.room_id %}" class="room-item">
+          <div class="room-icon">⬡</div>
+          <div class="room-info">
+            <div class="room-name">{{ room.player_x_name }} vs {{ room.player_o_name|default:"Waiting…" }}</div>
+            <div class="room-meta">Tic Tac Toe · {{ room.room_id|slice:":8" }}…</div>
+          </div>
+          <span class="badge-{{ room.status }}">{{ room.status }}</span>
+        </a>
+        {% endfor %}
+      {% else %}
+        <div class="no-rooms">
+          <div class="ni">💣</div>
+          <div>No active rooms yet. Create one and invite a friend!</div>
+        </div>
+      {% endif %}
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span>💣</span>
+        <span>All rights reserved by <strong>Anup</strong></span>
+        <span class="footer-year">© 2025</span>
+      </div>
+    </div>
+  </footer>
+
+</div><!-- #home -->
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+/* ── STARS ── */
+(function(){
+  const wrap = document.getElementById('stars');
+  for(let i=0;i<90;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    const sz=Math.random()*2+.5;
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${sz}px;height:${sz}px;opacity:${.1+Math.random()*.5};--d:${1.5+Math.random()*3}s;--delay:-${Math.random()*4}s;`;
+    wrap.appendChild(s);
+  }
+})();
+
+/* ── DEBRIS ── */
+(function(){
+  const exp=document.getElementById('explode');
+  for(let i=0;i<28;i++){
+    const db=document.createElement('div');
+    db.className='db';
+    const angle=(i/28)*360, dist=100+Math.random()*220;
+    const rad=angle*Math.PI/180, sz=4+Math.random()*10;
+    db.style.cssText=`width:${sz}px;height:${sz}px;background:hsl(${25+Math.random()*40}deg,100%,${55+Math.random()*20}%);--x:${Math.cos(rad)*dist}px;--y:${Math.sin(rad)*dist}px;--dur:${.45+Math.random()*.4}s;`;
+    exp.appendChild(db);
+  }
+})();
+
+/* ── TIMELINE ── */
+const bombWrap = document.getElementById('bombWrap');
+const splash   = document.getElementById('splash');
+const home     = document.getElementById('home');
+const explode  = document.getElementById('explode');
+const flash    = document.getElementById('flash');
+
+setTimeout(()=> bombWrap.classList.add('wiggle'), 2400);
+
+setTimeout(()=>{
+  bombWrap.style.transition='opacity .04s';
+  bombWrap.style.opacity='0';
+  flash.classList.add('pop');
+  document.body.classList.add('shake');
+  setTimeout(()=> document.body.classList.remove('shake'), 450);
+  explode.classList.add('boom');
+  explode.querySelectorAll('.core,.ring').forEach(el=> el.classList.add('go'));
+  explode.querySelectorAll('.db').forEach(el=> el.classList.add('go'));
+  setTimeout(()=>{
+    splash.classList.add('out');
+    home.classList.add('show');
+    setTimeout(()=> splash.remove(), 600);
+  }, 750);
+}, 4100);
+</script>
+{% endblock %}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}PlayGrid{% endblock %}</title>
+{% load static %}
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="{% static 'main.css' %}" rel="stylesheet">
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+
+{% block fullpage %}
+
+  <nav class="gv-nav">
+    <div class="container d-flex align-items-center justify-content-between">
+      <a class="brand" href="{% url 'home' %}">
+        <span class="brand-icon">💣</span>
+        <span class="brand-name">PLAY<span>GRID</span></span>
+      </a>
+      <div>
+        <a class="nav-link-gv" href="{% url 'home' %}">
+          <i class="fas fa-home me-1"></i> Lobby
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span>💣</span>
+        <span>All rights reserved by <strong>Anup</strong></span>
+        <span class="footer-year">© 2025</span>
+      </div>
+    </div>
+  </footer>
+
+{% endblock %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
