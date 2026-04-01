@@ -81,9 +81,10 @@
     <!-- Room Info -->
     <div class="sidebar-section">
       <div class="sidebar-title">⬡ Room Code</div>
-      <div class="room-code-box" id="roomCodeBox" onclick="copyRoomCode()" title="Click to copy">
-        {{ room_id }}
+      <div class="room-code-box" onclick="copyCode()">
+        {{ room.room_code }}
       </div>
+      <small>Share this 5 digit code with your friend</small>
       <div class="copy-hint">Click to copy · Share with a friend</div>
     </div>
     <!-- Chat -->
@@ -110,6 +111,7 @@
 
 <script>
   const ROOM_ID = "{{ room_id }}";
+  const ROOM_CODE = "{{ room_code }}";
   const PLAYER_ROLE = "{{ player_role }}";
   const PLAYER_NAME = "{{ request.session.player_name|default:'Player' }}";
 
@@ -279,7 +281,7 @@
   }
 
   function copyRoomCode() {
-    navigator.clipboard.writeText(ROOM_ID).then(() => {
+    navigator.clipboard.writeText(ROOM_CODE).then(() => {
       const box = document.getElementById('roomCodeBox');
       const orig = box.textContent;
       box.textContent = '✓ Copied!';

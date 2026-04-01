@@ -37,16 +37,12 @@ def join_room(request):
     if request.method == 'POST':
         room_code = request.POST.get('room_code', '').strip()
         try:
-            # Let users join with partial UUIDs (like the first 8 characters)
-            room = GameRoom.objects.filter(room_id__startswith=room_code).first()
-            if room:
-                return redirect('tictactoe_game', room_id=room.room_id)
-            else:
-                raise ValueError("Room not found")
+            room = GameRoom.objects.get(room_code=room_code)
+            return redirect('tictactoe_game', room_id=room.room_id)
         except (GameRoom.DoesNotExist, ValueError, TypeError):
             rooms = GameRoom.objects.filter(status__in=['waiting', 'active']).order_by('-created_at')[:10]
             return render(request, 'home.html', {
-                'error': 'Room not found. Check the code and try again.',
+                'error': 'Room not found. Check the 5-digit code and try again.',
                 'recent_rooms': rooms,
                 'player_name': request.session.get('player_name', ''),
             })
@@ -77,6 +73,7 @@ def tictactoe_game(request, room_id):
         'room': room,
         'player_role': player_role,
         'room_id': str(room_id),
+        'room_code': room.room_code,
     })
 def tictactoe_mode(request):
     return render(request, 'ttt.html')

@@ -200,7 +200,7 @@
           <div class="panel-label">🔗 Join a Friend's Room</div>
           <form method="post" action="{% url 'join_room' %}" class="d-flex gap-2">
             {% csrf_token %}
-            <input class="gv-input" type="text" name="room_code" placeholder="Paste room code here…" required>
+            <input class="gv-input" type="text" name="room_code" placeholder="Enter 5-digit code…" maxlength="5" pattern="[0-9]{5}" required>
             <button type="submit" class="btn-magenta">
               <i class="fas fa-sign-in-alt me-1"></i> Join
             </button>
@@ -221,7 +221,7 @@
         <div class="room-icon">⬡</div>
         <div class="room-info">
           <div class="room-name">{{ room.player_x_name }} vs {{ room.player_o_name|default:"Waiting…" }}</div>
-          <div class="room-meta">Tic Tac Toe · {{ room.room_id|slice:":8" }}…</div>
+          <div class="room-meta">Tic Tac Toe · Code: {{ room.room_code }}</div>
         </div>
         <span class="badge-{{ room.status }}">{{ room.status }}</span>
       </a>
