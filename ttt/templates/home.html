@@ -181,6 +181,38 @@
             </div>
           </div>
 
+          <!-- Ludo -->
+          <div class="game-card">
+            <div class="card-preview">
+              <div class="ludo-mini">
+                <div class="ludo-quad lq-red">
+                  <span class="ludo-dot ld-red"></span>
+                  <span class="ludo-dot ld-red"></span>
+                </div>
+                <div class="ludo-quad lq-green">
+                  <span class="ludo-dot ld-green"></span>
+                  <span class="ludo-dot ld-green"></span>
+                </div>
+                <div class="ludo-center">🎲</div>
+                <div class="ludo-quad lq-yellow">
+                  <span class="ludo-dot ld-yellow"></span>
+                  <span class="ludo-dot ld-yellow"></span>
+                </div>
+                <div class="ludo-quad lq-blue">
+                  <span class="ludo-dot ld-blue"></span>
+                  <span class="ludo-dot ld-blue"></span>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="card-title">Ludo</div>
+              <p class="card-desc">Roll the dice and race your pieces home. Classic board game fun for 2–4 players!</p>
+              <a href="{% url 'ludo_home' %}" class="btn-cyan w-100 d-block text-center" style="text-decoration:none;">
+                <i class="fas fa-gamepad me-1"></i> Play Ludo
+              </a>
+            </div>
+          </div>
+
           <!-- COMING SOON -->
           <div class="game-card card-locked">
             <div class="card-preview">
@@ -200,7 +232,8 @@
           <div class="panel-label">🔗 Join a Friend's Room</div>
           <form method="post" action="{% url 'join_room' %}" class="d-flex gap-2">
             {% csrf_token %}
-            <input class="gv-input" type="text" name="room_code" placeholder="Enter 5-digit code…" maxlength="5" pattern="[0-9]{5}" required>
+            <input class="gv-input" type="text" name="room_code" placeholder="Enter 5-digit code…" maxlength="5"
+              pattern="[0-9]{5}" required>
             <button type="submit" class="btn-magenta">
               <i class="fas fa-sign-in-alt me-1"></i> Join
             </button>

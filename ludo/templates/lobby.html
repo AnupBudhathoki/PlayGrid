@@ -1,0 +1,124 @@
+{% extends 'base2.html' %}
+{% load static %}
+
+{% block title %}Ludo - Lobby {{ room_code }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8 col-lg-6">
+        <div class="glass-card p-4">
+            <div class="text-center mb-4">
+                <h2 class="fw-800">Game Lobby</h2>
+                <p class="text-secondary mb-1">Room Code:</p>
+                <h1 class="display-4 fw-900 gradient-text tracking-widest">{{ room_code }}</h1>
+                <p class="text-secondary small mt-2">Share this code with your friends!</p>
+            </div>
+
+            <div class="lobby-players-list mb-4">
+                <h5 class="fw-600 mb-3 border-bottom border-secondary pb-2">Players <span id="player-count">(1/4)</span>
+                </h5>
+                <ul class="list-group list-group-flush bg-transparent" id="players-list">
+                    <!-- Populated by websocket -->
+                    {% for p in players %}
+                    <li class="list-group-item bg-transparent text-light border-secondary d-flex align-items-center">
+                        <span class="badge bg-ludo-{{ p.color }} me-3 rounded-circle p-2"
+                            style="width: 24px; height: 24px;"></span>
+                        <span class="fw-500 fs-5">{{ p.name }}</span>
+                        {% if p.is_host %}
+                        <span class="badge bg-secondary ms-auto">Host</span>
+                        {% endif %}
+                        {% if p.id == player.id %}
+                        <span class="badge bg-primary ms-2">(You)</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="text-center mt-4">
+                {% if player.is_host %}
+                <button id="btn-start-game" class="btn btn-accent btn-glow px-5 py-2 fw-700 fs-5">
+                    Start Game
+                </button>
+                <div id="start-error" class="text-danger mt-2 d-none">Need at least 2 players!</div>
+                {% else %}
+                <p class="text-secondary d-flex align-items-center justify-content-center">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                    Waiting for host to start the game...
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{{ room_code|json_script:"room-code" }}
+{{ player.id|json_script:"player-id" }}
+<script>
+    const roomCode = JSON.parse(document.getElementById('room-code').textContent);
+    const playerId = JSON.parse(document.getElementById('player-id').textContent);
+
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const gameSocket = new WebSocket(
+        wsScheme + '://' + window.location.host + '/ws/game/' + roomCode + '/'
+    );
+
+    gameSocket.onopen = function (e) {
+        if (playerId) {
+            gameSocket.send(JSON.stringify({
+                'action': 'player_join',
+                'player_id': playerId
+            }));
+        }
+    };
+
+    gameSocket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+
+        if (data.type === 'lobby_update') {
+            updatePlayersList(data.players);
+        } else if (data.type === 'game_started') {
+            window.location.href = "{% url 'online_game' room_code=room_code %}";
+        } else if (data.type === 'error') {
+            const errDiv = document.getElementById('start-error');
+            if (errDiv) {
+                errDiv.textContent = data.message;
+                errDiv.classList.remove('d-none');
+            }
+        }
+    };
+
+    function updatePlayersList(players) {
+        const list = document.getElementById('players-list');
+        list.innerHTML = '';
+        document.getElementById('player-count').textContent = `(${players.length}/4)`;
+
+        players.forEach(p => {
+            const li = document.createElement('li');
+            li.className = "list-group-item bg-transparent text-light border-secondary d-flex align-items-center";
+
+            let badges = '';
+            if (p.is_host) badges += '<span class="badge bg-secondary ms-auto">Host</span>';
+            if (p.id === playerId) badges += '<span class="badge bg-primary ms-2">(You)</span>';
+
+            li.innerHTML = `
+                <span class="badge bg-ludo-${p.color} me-3 rounded-circle p-2" style="width: 24px; height: 24px;"></span>
+                <span class="fw-500 fs-5">${p.name}</span>
+                ${badges}
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    const startBtn = document.getElementById('btn-start-game');
+    if (startBtn) {
+        startBtn.onclick = function (e) {
+            gameSocket.send(JSON.stringify({
+                'action': 'start_game'
+            }));
+        };
+    }
+</script>
+{% endblock %}
