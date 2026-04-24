@@ -9,7 +9,7 @@ def ludo_home(request):
     return render(request, 'ludo_home.html')
 
 
-def ludo_offline(request):
+def local_game(request):
     """Local multiplayer game page."""
     return render(request, 'local_game.html')
 
