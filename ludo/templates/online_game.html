@@ -32,6 +32,6 @@
 {% block extra_scripts %}
 {{ room_code|json_script:"room-code" }}
 {{ player.color|default:"null"|json_script:"my-color" }}
-<script src="{% static 'game/js/board.js' %}"></script>
-<script src="{% static 'game/js/online.js' %}"></script>
+<script src="{% static 'js/board.js' %}"></script>
+<script src="{% static 'js/online.js' %}"></script>
 {% endblock %}
